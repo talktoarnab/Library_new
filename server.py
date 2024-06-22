@@ -11,10 +11,14 @@ db.init_app(app)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
 @app.route('/authors')
 def authors():
     authors = Author.query.all()
     return render_template('authors.html', authors=authors)
+
+
 @app.route('/books', methods=['GET', 'POST'])
 def books():
     if request.method == 'POST':
@@ -36,6 +40,7 @@ def books():
     author = db.session.query(Author).all()
     return render_template('books.html', book=books, pub=publisher, auth=author)
 
+
 @app.route('/newbook', methods=['GET', 'POST'])
 def newbook():
     if request.method == 'POST':
@@ -54,17 +59,37 @@ def newbook():
         author = db.session.query(Author).all()
     return render_template('books.html', book=books, pub=publisher, auth=author)
 
+
 @app.route('/bookCopies')
 def bookCopies():
     if request.method == 'GET':
         search_query = request.args.get('title')
         if search_query:
-            copy = db.session.query(Book, BookCopy, Loan, Member).join(BookCopy, Book.BookID == BookCopy.BookID)\
+            copy = db.session.query(Book, BookCopy, Loan, Member).outerjoin(BookCopy, Book.BookID == BookCopy.BookID)\
                 .outerjoin(Loan, BookCopy.CopyID == Loan.CopyID)\
                 .outerjoin(Member, Loan.MemberID == Member.MemberID)\
                 .filter(Book.Title.like(f"{search_query}")).all()
-            print(copy)
+        print(copy)
     return render_template('bookCopies.html', title=copy)
+
+
+@app.route('/newCopy', methods=['GET', 'POST'])
+def newcopy():
+    if request.method == 'POST':
+        title = request.form['title']
+        status = request.form['status']
+        shelf = request.form['shelf']
+
+        if shelf:
+            copy = BookCopy(BookID=title, Status=status, ShelfLocation=shelf)
+            db.session.add(copy)
+            db.session.commit()
+        copy = db.session.query(Book, BookCopy, Loan, Member).join(BookCopy, Book.BookID == BookCopy.BookID) \
+            .outerjoin(Loan, BookCopy.CopyID == Loan.CopyID) \
+            .outerjoin(Member, Loan.MemberID == Member.MemberID) \
+            .filter(Book.BookID.like(f"{title}")).all()
+        return render_template('bookCopies.html', title=copy)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
