@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Books</h2>
+<h3>Find Books</h3>
+<form action = "{{ url_for('books') }}" method="POST">
+    <label for="search_query">Search by Title:</label>
+    <input type="text" name="search_query" placeholder="Enter book title">
+    <input type="text" name="search_genre" placeholder="Enter book genre">
+    <input type="text" name="search_author" placeholder="Enter author Name">
+    <button type="submit">Search</button>
+</form>
+
+<table border="1">
+    <tr>
+        <th>Title</th>
+        <th> Author</th>
+        <th>Publisher.Name}}</th>
+        <th>{{ Book.ISBN }}</th>
+        <th>{{ Book.Year }}</th>
+        <th> {{ Book.Genre }}</th>
+    </tr>
+    {% for Book, Author, Publisher in book %}
+    <tr>
+        <td><a href="{{ url_for('bookCopies') }}?title={{ Book.Title }}">{{ Book.Title }}</a></td>
+        <td> {{Author.FirstName}} {{Author.LastName}}</td>
+        <td>{{Publisher.Name}}</td>
+        <td>{{ Book.ISBN }}</td>
+        <td>{{ Book.Year }}</td>
+        <td> {{ Book.Genre }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>New Book</h3>
+<form action = "{{ url_for('newbook') }}" method="POST">
+    <input type="text" name="title" placeholder="Enter book title">
+    <select name="author" placeholder="Select Author">
+        {% for Auth in auth %}
+        <option value="{{Auth.AuthorID}}">{{Auth.FirstName}} {{Auth.LastName}}</option>
+        {% endfor %}
+    </select>
+        <select name="publisher" placeholder="Select Publisher">
+        {% for Pub in pub %}
+        <option value="{{Pub.PublisherID}}">{{Pub.Name}}</option>
+        {% endfor %}
+    </select>
+    <input type="text" name="isbn" placeholder="Enter ISBN">
+    <input type="text" name="year" placeholder="Enter Year of publication">
+    <input type="text" name="genre" placeholder="Enter Genre">
+    <button type="submit">Add</button>
+</form>
+{% endblock %}

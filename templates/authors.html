@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Authors</h2>
+<table border="0.5">
+    {% for Author in authors %}
+    <tr><td>{{ Author.FirstName }} {{ Author.LastName }}:</td><td>{{ Author.Bio }}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

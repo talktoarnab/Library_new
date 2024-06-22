@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Book Copies</h2>
+<table border="1">
+    {% for Book, BookCopy, Loan, Member in title %}
+    <tr>
+        <td>{{ BookCopy.CopyID }}</td>
+        <td>{{ Book.Title }}</td>
+        <td> {{ BookCopy.ShelfLocation }}</td>
+        <td>{{BookCopy.Status}}</td>
+        <td>{{Loan.LoanID}}</td>
+        <td>{{Loan.LoanDate}}</td>
+        <td>{{Loan.DueDate}}</td>
+        <td>{{Loan.ReturnDate}}</td>
+        <td>{{Member.FirstName}} {{Member.LastName}}</td>
+        <td>{{Member.Phone}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
