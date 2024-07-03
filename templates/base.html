@@ -1,24 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+        <style>
+        body {
+            font-family: Verdana, sans-serif;
+        }
+            td, th{
+    text-align: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 20px;
+  padding-right: 20px;
+    }
+    th{
+    background-color: #66ccff;
+    }
+    tr:nth-child(even) {
+            background-color: #fff;
+        }
+        tr:nth-child(odd) {
+            background-color: #eeeeee;
+        }
+        div.banner{
+          padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 20px;
+  padding-right: 20px;
+  background-color: #8442f5;
+  color: #cbced4;
+        }
+        table{
+        border: 1px #eeeeee solid;
+        }
+        a{
+         text-decoration: none;
+         color: grey;
+        }
+        </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library Management System</title>
 </head>
 <body>
     <header>
-        <h1>Library Management System</h1>
+        <div class="banner"><h1>Library Management System</h1></div>
         <nav>
-        <table>
+        <table align="center">
             <tr>
-            <td><a href="{{ url_for('authors') }}">Authors</a></td>
-            <td><a href="{{ url_for('books') }}">Books</a></td>
+            <th><a href="{{ url_for('authors') }}">Authors</a></th>
+            <th><a href="{{ url_for('books') }}">Books</a></th>
             </tr>
          </table>
             <!-- Add other navigation links here -->
         </nav>
     </header>
-    <main>
+    <main style="text-align: center">
         {% block content %}{% endblock %}
     </main>
 </body>

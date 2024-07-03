@@ -1,28 +1,157 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    td, th{
+    text-align: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 20px;
+  padding-right: 20px;
+    }
+    tr:nth-child(even) {
+            background-color: #fff;
+        }
+        tr:nth-child(odd) {
+            background-color: #eeeeee;
+        }
+</style>
 <h2>Book Copies</h2>
-<table border="1">
+
+<h3>Copies of {{ title[0].Book.Title}} Available: {{c}}</h3>
+<table border="0" align="center">
+    <tr style="background-color: #66ccff;">
+        <th>CopyID</th>
+        <th>Title</th>
+        <th>ShelfLocation</th>
+        <th>Status</th>
+        <th>LoanID</th>
+        <th>LoanDate</th>
+        <th>DueDate</th>
+        <th>Member Name</th>
+        <th>Phone</th>
+        <th></th>
+    </tr>
+
     {% for Book, BookCopy, Loan, Member in title %}
     <tr>
-        <td>{{ BookCopy.CopyID }}</td>
-        <td>{{ Book.Title }}</td>
-        <td> {{ BookCopy.ShelfLocation }}</td>
+        <form action = "{{ url_for('newloan') }}" method="POST">
+        <td><input type="hidden" name="copyID" value="{{ BookCopy.CopyID }}">{{ BookCopy.CopyID }}</td>
+        <td><input type="hidden" name="title" value="{{ Book.BookID}}">{{ Book.Title }}</td>
+        <td>{{ BookCopy.ShelfLocation }}</td>
         <td>{{BookCopy.Status}}</td>
         <td>{{Loan.LoanID}}</td>
         <td>{{Loan.LoanDate}}</td>
         <td>{{Loan.DueDate}}</td>
-        <td>{{Loan.ReturnDate}}</td>
-        <td>{{Member.FirstName}} {{Member.LastName}}</td>
-        <td>{{Member.Phone}}</td>
+        <td><input type="text" id= "selected_member_{{ BookCopy.CopyID }}" name= "selected_member" value="{{Member.FirstName}} {{Member.LastName}}" readonly>
+            <input type="hidden" id= "selected_id_{{ BookCopy.CopyID }}" name="memberId" value="{{Member.MemberID}}">
+            {%if BookCopy.Status=='Available':%}
+            <button type="button" onclick="showMemberSearch({{ BookCopy.CopyID }})">Find</button>
+        {% endif %}
+        </td>
+        <td><input type="text" value="{{Member.Phone}}" readonly></td>
+        <td>
+        {%if BookCopy.Status=='Available':%}
+            <input type="hidden" name="return" value="no">
+            <button type="submit" id="loanbutton_{{ BookCopy.CopyID }}" disabled="true" style="width:120px">loan</button>
+        {%else%}
+            <input type="hidden" name="return" value="yes">
+            <button type="submit" id="returnbutton_{{ BookCopy.CopyID }}" style="width:120px">return</button>
+        {% endif %}
+        </td>
+        </form>
     </tr>
     {% endfor %}
 </table>
 <h3>New Copy</h3>
+
 <form action = "{{ url_for('newcopy') }}" method="POST">
     <input type="hidden" name="title" value="{{ title[0].Book.BookID}}">
     <input type="hidden" name="status" value="Available">
     <input type="text" name="shelf" placeholder="Enter Location">
     <button type="submit">Add</button>
 </form>
+<div id="memberSearchModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeMemberSearch()">&times;</span>
+        <h2>Search Member</h2>
+        <input type="text" id="memberSearchQuery" placeholder="Enter member name or email">
+        <input type="hidden" id="bookId">
+        <button type="button" onclick="searchMember()">Search</button>
+        <div id="memberSearchResults"></div>
+    </div>
+</div>
+
+<script>
+    function showMemberSearch(bookId) {
+    document.getElementById('memberSearchModal').style.display = 'block';
+    document.getElementById('bookId').value = bookId;
+
+}
+function closeMemberSearch() {
+    document.getElementById('memberSearchModal').style.display = 'none';
+}
+function searchMember() {
+    const query = document.getElementById('memberSearchQuery').value;
+    fetch(`/search_member?query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById('memberSearchResults');
+            resultsDiv.innerHTML = '';
+            data.members.forEach(member => {
+                const memberDiv = document.createElement('div');
+                const lineBrk = document.createElement('br');
+                memberDiv.textContent = `${member.FirstName} ${member.LastName} (${member.Email})`;
+                memberDiv.onclick = () => selectMember(member.MemberID, member.FirstName, member.LastName);
+                resultsDiv.appendChild(memberDiv);
+                resultsDiv.appendChild(lineBrk);
+            });
+        });
+}
+
+function selectMember(memberID, firstName, lastName) {
+    bid = document.getElementById('bookId').value
+    document.getElementById('selected_member_'+bid).value = `${firstName} ${lastName}`;
+    document.getElementById('selected_id_'+bid).value = `${memberID}`;
+    document.getElementById('loanbutton_'+bid).disabled = false;
+    closeMemberSearch();
+}
+</script>
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+</style>
 {% endblock %}
