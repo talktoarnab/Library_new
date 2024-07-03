@@ -164,6 +164,8 @@ def newloan():
 def authors():
     authors = Author.query.order_by(Author.FirstName).all()
     return render_template('authors.html', authors=authors)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
