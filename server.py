@@ -4,7 +4,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from sqlalchemy import text
 
 from config import Config
-from models import db, Author, Book, Publisher, BookCopy, Loan, Member
+from models import db, Author, Book, Publisher, BookCopy, Loan, Member, ReturnedLoan
+
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
@@ -36,24 +37,29 @@ def newauthor():
 
 @app.route('/books', methods=['GET', 'POST'])
 def books():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
     if request.method == 'POST':
         search_query = request.form['search_query']
         search_genre = request.form['search_genre']
         search_author = request.form['search_author']
         print('Hi' + search_query, 'hello' + search_genre)
         if search_query:
-            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title).filter(Book.Title.like(f"%{search_query}%")).all()
+            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).filter(Book.Title.like(f"%{search_query}%")).order_by(Book.Title)
         if search_genre:
-            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title).filter(Book.Genre.like(f"%{search_genre}%")).all()
+            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).filter(Book.Genre.like(f"%{search_genre}%")).order_by(Book.Title)
         if search_author:
-            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title).filter(Author.FirstName.like(f"%{search_author}%") | Author.LastName.like(f"%{search_author}%")).all()
+            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).filter(Author.FirstName.like(f"%{search_author}%") | Author.LastName.like(f"%{search_author}%")).order_by(Book.Title)
         if search_query == '' and search_genre == '' and search_author == '':
-            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title).all()
+            books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title)
     else:
-        books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title).all()
+        books = db.session.query(Book, Author, Publisher).join(Author).join(Publisher).order_by(Book.Title)
+    paginatedbook = books.paginate(page=page, per_page=per_page, error_out=False)
+    next_url = url_for('books', page=paginatedbook.next_num) if paginatedbook.has_next else None
+    prev_url = url_for('books', page=paginatedbook.prev_num) if paginatedbook.has_prev else None
     publisher = db.session.query(Publisher).all()
     author = db.session.query(Author).all()
-    return render_template('books.html', book=books, pub=publisher, auth=author)
+    return render_template('books.html', book=paginatedbook.items, pub=publisher, auth=author,next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/newbook', methods=['GET', 'POST'])
@@ -83,10 +89,10 @@ def bookCopies():
             copy = db.session.query(Book, BookCopy, Loan, Member).outerjoin(BookCopy, Book.BookID == BookCopy.BookID)\
                 .outerjoin(Loan, BookCopy.CopyID == Loan.CopyID)\
                 .outerjoin(Member, Loan.MemberID == Member.MemberID)\
-                .filter(Book.Title.like(f"{search_query}")).all()
+                .filter(Book.BookID == search_query).all()
             print(copy)
             count = db.session.query(Book, BookCopy).outerjoin(BookCopy, Book.BookID == BookCopy.BookID)\
-                .filter(Book.Title.like(f"{search_query}"), BookCopy.Status.like(f"Available")).all()
+                .filter(Book.BookID == search_query, BookCopy.Status.like(f"Available")).all()
             count = len(count)
     return render_template('bookCopies.html', title=copy, c=count)
 
@@ -143,7 +149,7 @@ def newloan():
                 copyrow = BookCopy.query.filter_by(CopyID=copy).first()
                 copyrow.Status = 'Loaned'
                 db.session.commit()
-            if ret == 'yes':
+            if ret == 'yes' or ret == 'yesmember':
                 result = db.session.execute(text('insert into Returnedloan(LoanID,CopyID,MemberID,StaffID,LoanDate,DueDate) select * from Loan where CopyID = :cid'), {'cid': copy})
                 result = db.session.execute(text('delete from Loan where CopyID = :cid'), {'cid': copy})
                 result = db.session.execute(text("update bookcopy set Status='Available' where CopyID = :cid"),
@@ -153,17 +159,88 @@ def newloan():
             .outerjoin(Loan, BookCopy.CopyID == Loan.CopyID) \
             .outerjoin(Member, Loan.MemberID == Member.MemberID) \
             .filter(Book.BookID.like(f"{title}")).all()
-        print(copytitle)
         count = db.session.query(Book, BookCopy).outerjoin(BookCopy, Book.BookID == BookCopy.BookID) \
             .filter(Book.BookID.like(f"{title}"), BookCopy.Status.like(f"Available")).all()
         count = len(count)
-        return render_template('bookCopies.html', title=copytitle, c=count)
+        if ret == 'yes' or ret == 'no':
+            return render_template('bookCopies.html', title=copytitle, c=count)
+        elif ret == 'yesmember':
+            copy = db.session.query(Member, Loan, BookCopy, Book).outerjoin(Loan, Member.MemberID == Loan.MemberID) \
+                .outerjoin(BookCopy, Loan.CopyID == BookCopy.CopyID) \
+                .outerjoin(Book, BookCopy.BookID == Book.BookID) \
+                .filter(Member.MemberID == member).all()
+            count = db.session.query(Member, ReturnedLoan, BookCopy, Book)\
+                .join(ReturnedLoan, Member.MemberID == ReturnedLoan.MemberID)\
+                .join(BookCopy, ReturnedLoan.CopyID == BookCopy.CopyID) \
+                .join(Book, BookCopy.BookID == Book.BookID) \
+                .filter(Member.MemberID == member).all()
+            return render_template('memberloan.html', title=copy, c=count)
 
 
-@app.route('/authors')
-def authors():
-    authors = Author.query.order_by(Author.FirstName).all()
-    return render_template('authors.html', authors=authors)
+@app.route('/members', methods=['GET', 'POST'])
+def members():
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    members = db.session.query(Member).order_by(Member.FirstName)
+    paginatedmembers = members.paginate(page=page, per_page=per_page, error_out=False)
+    next_url = url_for('members', page=paginatedmembers.next_num) if paginatedmembers.has_next else None
+    prev_url = url_for('members', page=paginatedmembers.prev_num) if paginatedmembers.has_prev else None
+    return render_template('members.html', member=paginatedmembers.items,next_url=next_url,
+                           prev_url=prev_url)
+
+
+@app.route('/memberloan')
+def memberloan():
+    if request.method == 'GET':
+        search_query = request.args.get('member')
+        if search_query:
+            copy = db.session.query(Member, Loan, BookCopy, Book).outerjoin(Loan, Member.MemberID == Loan.MemberID)\
+                .outerjoin(BookCopy, Loan.CopyID == BookCopy.CopyID)\
+                .outerjoin(Book, BookCopy.BookID == Book.BookID)\
+                .filter(Member.MemberID == search_query).all()
+            count = db.session.query(Member, ReturnedLoan, BookCopy, Book).join(ReturnedLoan, Member.MemberID == ReturnedLoan.MemberID)\
+                .join(BookCopy, ReturnedLoan.CopyID == BookCopy.CopyID)\
+                .join(Book, BookCopy.BookID == Book.BookID)\
+                .filter(Member.MemberID == search_query).all()
+    return render_template('memberloan.html', title=copy, c=count)
+
+
+@app.route('/newmember', methods=['GET', 'POST'])
+def newmember():
+    if request.method == 'POST':
+        first = request.form['first']
+        second = request.form['second']
+        add = request.form['add']
+        phone = request.form['phone']
+        email = request.form['email']
+        memdate = request.form['memdate']
+        type = request.form['type']
+        if first and second and memdate and type:
+            member = Member(FirstName=first, LastName=second, Address=add, Phone=phone, Email=email, MembershipDate=memdate, MembershipType=type)
+            db.session.add(member)
+            db.session.commit()
+        members = Member.query.order_by(Member.FirstName).all()
+    return render_template('members.html', member=members)
+
+
+@app.route('/newpublisher', methods=['GET', 'POST'])
+def newpublisher():
+    if request.method == 'POST':
+        pub = request.form['publisher']
+        ph = request.form['phone']
+        email = request.form['email']
+        add = request.form['add']
+        if pub:
+            newpublisher = Publisher(Name=pub, Address=add, Phone=ph, Email=email)
+            db.session.add(newpublisher)
+            db.session.commit()
+        publisher = Publisher.query.order_by(Publisher.Name).all()
+    return render_template('publisher.html', publisher=publisher)
+
+@app.route('/publisher')
+def publisher():
+    publisher = Publisher.query.order_by(Publisher.Name).all()
+    return render_template('publisher.html', publisher=publisher)
 
 
 if __name__ == '__main__':

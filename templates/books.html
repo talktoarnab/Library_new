@@ -2,24 +2,14 @@
 
 {% block content %}
 <style>
-    td, th{
-    text-align: center;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  padding-left: 20px;
-  padding-right: 20px;
-    }
-    tr:nth-child(even) {
-            background-color: #fff;
-        }
-        tr:nth-child(odd) {
-            background-color: #eeeeee;
+a.data:hover{
+         text-decoration: none;
+         color: #66ccff;
         }
 </style>
 <h2>Books</h2>
 <h3>Find Books</h3>
 <form action = "{{ url_for('books') }}" method="POST">
-    <label for="search_query">Search by Title:</label>
     <input type="text" name="search_query" placeholder="Enter book title">
     <input type="text" name="search_genre" placeholder="Enter book genre">
     <input type="text" name="search_author" placeholder="Enter author Name">
@@ -28,6 +18,7 @@
 <h3></h3>
 <table border="0" align="center">
     <tr style="background-color: #66ccff;">
+        <th>Book ID</th>
         <th>Title</th>
         <th>Author</th>
         <th>Publisher</th>
@@ -37,7 +28,8 @@
     </tr>
     {% for Book, Author, Publisher in book %}
     <tr>
-        <td><a href="{{ url_for('bookCopies') }}?title={{ Book.Title }}">{{ Book.Title }}</a></td>
+        <td>{{ Book.BookID }}</td>
+        <td><a class="data" href="{{ url_for('bookCopies') }}?title={{ Book.BookID }}">{{ Book.Title }}</a></td>
         <td> {{Author.FirstName}} {{Author.LastName}}</td>
         <td>{{Publisher.Name}}</td>
         <td>{{ Book.ISBN }}</td>
@@ -46,23 +38,129 @@
     </tr>
     {% endfor %}
 </table>
-
+<div class="pagination">
+    {% if prev_url %}
+    <a href="{{ prev_url }}">&laquo; Previous</a>
+    {% endif %}
+    {% if next_url %}
+    <a href="{{ next_url }}">Next &raquo;</a>
+    {% endif %}
+</div>
 <h3>New Book</h3>
 <form action = "{{ url_for('newbook') }}" method="POST">
-    <input type="text" name="title" placeholder="Enter book title">
-    <select name="author" placeholder="Select Author">
-        {% for Auth in auth %}
-        <option value="{{Auth.AuthorID}}">{{Auth.FirstName}} {{Auth.LastName}}</option>
-        {% endfor %}
-    </select>
-        <select name="publisher" placeholder="Select Publisher">
-        {% for Pub in pub %}
-        <option value="{{Pub.PublisherID}}">{{Pub.Name}}</option>
-        {% endfor %}
-    </select>
-    <input type="text" name="isbn" placeholder="Enter ISBN">
-    <input type="text" name="year" placeholder="Enter Year of publication">
-    <input type="text" name="genre" placeholder="Enter Genre">
-    <button type="submit">Add</button>
+    <table align="center">
+        <tr>
+            <td>
+                <input type="text" name="title" placeholder="Enter book title">
+            </td>
+            <td>
+                <select name="author" placeholder="Select Author">
+                    {% for Auth in auth %}
+                    <option value="{{Auth.AuthorID}}">{{Auth.FirstName}} {{Auth.LastName}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <select name="publisher" placeholder="Select Publisher">
+                {% for Pub in pub %}
+                <option value="{{Pub.PublisherID}}">{{Pub.Name}}</option>
+                {% endfor %}
+                </select>
+            </td>
+            <td>
+                <input type="text" name="isbn" placeholder="Enter ISBN">
+                <input type="text" name="year" placeholder="Enter Year of publication">
+            </td>
+            <td>
+                <input type="text" name="genre" placeholder="Enter Genre">
+            </td>
+            <td>
+                <button type="submit" class="wide">Add</button>
+            </td>
+        </tr>
+    </table>
 </form>
+
+<div id="authSearchModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAuthSearch()">&times;</span>
+        <h2>Search Member</h2>
+        <input type="text" id="memberSearchQuery" placeholder="Enter member name or email">
+        <input type="hidden" id="bookId">
+        <button type="button" onclick="searchMember()">Search</button>
+        <div id="memberSearchResults"></div>
+    </div>
+</div>
+<script>
+    function showMemberSearch(bookId) {
+    document.getElementById('authSearchModal').style.display = 'block';
+    document.getElementById('bookId').value = bookId;
+
+}
+function closeAuthSearch() {
+    document.getElementById('memberSearchModal').style.display = 'none';
+}
+function searchMember() {
+    const query = document.getElementById('memberSearchQuery').value;
+    fetch(`/search_member?query=${query}`)
+        .then(response => response.json())
+        .then(data => {
+            const resultsDiv = document.getElementById('memberSearchResults');
+            resultsDiv.innerHTML = '';
+            data.members.forEach(member => {
+                const memberDiv = document.createElement('div');
+                const lineBrk = document.createElement('br');
+                memberDiv.textContent = `${member.FirstName} ${member.LastName} (${member.Email})`;
+                memberDiv.onclick = () => selectMember(member.MemberID, member.FirstName, member.LastName);
+                resultsDiv.appendChild(memberDiv);
+                resultsDiv.appendChild(lineBrk);
+            });
+        });
+}
+
+function selectMember(memberID, firstName, lastName) {
+    bid = document.getElementById('bookId').value
+    document.getElementById('selected_member_'+bid).value = `${firstName} ${lastName}`;
+    document.getElementById('selected_id_'+bid).value = `${memberID}`;
+    document.getElementById('loanbutton_'+bid).disabled = false;
+    closeMemberSearch();
+}
+</script>
+<style>
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+</style>
 {% endblock %}

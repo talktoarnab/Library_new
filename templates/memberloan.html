@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+
+</style>
+<h2>Member Loans</h2>
+
+<h3>Current Loans of {{ title[0].Member.FirstName}} {{ title[0].Member.LastName}}</h3>
+<table border="0" align="center">
+    <tr style="background-color: #66ccff;">
+        <th>Member ID</th>
+        <th>Member Name</th>
+        <th>Book Copy ID</th>
+        <th>Book Title</th>
+        <th>Loan Date</th>
+        <th>Due Date</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th></th>
+    </tr>
+
+    {% for Member, Loan, BookCopy, Book in title %}
+    <tr>
+        <form action = "{{ url_for('newloan') }}" method="POST">
+        <td><input type="hidden" id= "selected_id_{{ BookCopy.CopyID }}" name="memberId" value="{{Member.MemberID}}">{{ Member.MemberID }}</td>
+        <td>{{ Member.FirstName }} {{ Member.LastName }}</td>
+        <td><input type="hidden" name="copyID" value="{{ BookCopy.CopyID }}">{{ BookCopy.CopyID }}</td>
+        <td><input type="hidden" name="title" value="{{ Book.BookID}}">{{ Book.Title }}</td>
+        <td>{{ Loan.LoanDate }}</td>
+        <td>{{ Loan.DueDate }}</td>
+        <td>{{ Member.Email }}</td>
+        <td>{{ Member.Email }}</td>
+        <td>
+            {%if BookCopy.Status=='Loaned':%}
+            <input type="hidden" name="return" value="yesmember">
+            <button type="submit" id="returnbutton_{{ BookCopy.CopyID }}" style="width:120px">return</button>
+            {% endif%}
+        </td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+<h3>Previous Loans of {{ title[0].Member.FirstName}} {{ title[0].Member.LastName}}</h3>
+<table border="0" align="center">
+    <tr style="background-color: #66ccff;">
+        <th>Member ID</th>
+        <th>Member Name</th>
+        <th>Book Copy ID</th>
+        <th>Book Title</th>
+        <th>Loan Date</th>
+        <th>Return Date</th>
+        <th>Email</th>
+        <th>Phone</th>
+    </tr>
+
+    {% for Member, ReturnedLoan, BookCopy, Book in c %}
+    <tr>
+        <form action = "{{ url_for('newloan') }}" method="POST">
+        <td>{{ Member.MemberID }}</td>
+        <td>{{ Member.FirstName }} {{ Member.LastName }}</td>
+        <td>{{ BookCopy.CopyID }}</td>
+        <td>{{ Book.Title }}</td>
+        <td>{{ ReturnedLoan.LoanDate }}</td>
+        <td>{{ ReturnedLoan.ReturnDate }}</td>
+        <td>{{ Member.Email }}</td>
+        <td>{{ Member.Email }}</td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+
+{% endblock %}

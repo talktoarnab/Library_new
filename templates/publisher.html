@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+a.data:hover{
+         text-decoration: none;
+         color: #66ccff;
+        }
+</style>
+<h2>Publishers</h2>
+<table border="0.5" align="center">
+    <tr>
+        <th>Publisher ID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Phone</th>
+        <th>Email</th>
+    </tr>
+    {% for Publisher in publisher %}
+    <tr>
+        <td>{{ Publisher.PublisherID }}</td>
+        <td>{{ Publisher.Name }}</td>
+        <td>{{ Publisher.Address }}</td>
+        <td>{{ Publisher.Phone }}</td>
+        <td>{{ Publisher.Email }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<h3>New Publisher</h3>
+<form action = "{{ url_for('newpublisher') }}" method="POST">
+    <table align="center">
+        <tr>
+            <td><input type="text" name="publisher" placeholder="Enter first name of the Publisher" size="40"></td>
+            <td><input type="text" name="phone" placeholder="Enter phone of the Publisher" size="40"></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="cen"><textarea name="add" placeholder="Enter address of the Publisher" cols="80"></textarea></td>
+        </tr>
+        <tr>
+            <td class="cen"><input type="text" name="email" placeholder="Enter e-mail if of the Publisher" size="40"></td>
+        </tr>
+        <tr>
+            <td class="cen" colspan="2"><button class="wide" type="submit">Add</button></td>
+        </tr>
+    </table>
+
+
+</form>
+{% endblock %}

@@ -1,20 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+
+</style>
 <h2>Authors</h2>
 <table border="0.5" align="center">
+    <tr><th>Name</th><th>Bio</th></tr>
     {% for Author in authors %}
-    <tr><td>{{ Author.FirstName }} {{ Author.LastName }}:</td><td>{{ Author.Bio }}</td></tr>
+    <tr><td>{{ Author.FirstName }} {{ Author.LastName }}</td><td>{{ Author.Bio }}</td></tr>
     {% endfor %}
 </table>
 <h3>New Author</h3>
 <form action = "{{ url_for('newauthor') }}" method="POST">
     <table align="center">
         <tr>
-            <td><input type="text" name="first" placeholder="Enter first name of the Author"></td>
-    <td><input type="text" name="second" placeholder="Enter second name of the Author"></td>
-    <td><textarea name="bio" placeholder="Enter bio of the author"></textarea></td>
-    <td><button type="submit">Add</button></td>
+            <td><input type="text" name="first" placeholder="Enter first name of the Author" size="40"></td>
+            <td><input type="text" name="second" placeholder="Enter second name of the Author" size="40"></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="cen"><textarea name="bio" placeholder="Enter bio of the author" cols="80"></textarea></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="cen"><button type="submit" class="wide">Add</button></td>
         </tr>
     </table>
 

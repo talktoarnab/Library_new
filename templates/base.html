@@ -3,10 +3,10 @@
 <head>
         <style>
         body {
-            font-family: Verdana, sans-serif;
+            font-family: Helvetica, sans-serif;
         }
             td, th{
-    text-align: center;
+    text-align: left;
   padding-top: 5px;
   padding-bottom: 5px;
   padding-left: 20px;
@@ -30,12 +30,38 @@
   color: #cbced4;
         }
         table{
-        border: 1px #eeeeee solid;
+        border: 1px #66ccff solid;
         }
         a{
          text-decoration: none;
          color: grey;
         }
+        a:hover{
+         text-decoration: none;
+         color: white;
+        }
+    td.cen{
+    text-align: center
+    }
+    button.wide{
+    width: 120px
+    }
+    .pagination {
+    margin-top: 20px;
+}
+
+.pagination a {
+    margin: 0 5px;
+    padding: 8px 16px;
+    text-decoration: none;
+    background-color: #66ccff;
+    color: white;
+    border-radius: 4px;
+}
+
+.pagination a:hover {
+    background-color: #0056b3;
+}
         </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,6 +75,8 @@
             <tr>
             <th><a href="{{ url_for('authors') }}">Authors</a></th>
             <th><a href="{{ url_for('books') }}">Books</a></th>
+            <th><a href="{{ url_for('members') }}">Members</a></th>
+            <th><a href="{{ url_for('publisher') }}">Publishers</a></th>
             </tr>
          </table>
             <!-- Add other navigation links here -->

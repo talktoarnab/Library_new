@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+a.data:hover{
+         text-decoration: none;
+         color: #66ccff;
+        }
+</style>
+<h2>Members</h2>
+<table border="0.5" align="center">
+    <tr>
+        <th>MemberID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Phone</th>
+        <th>Email</th>
+        <th>MembershipDate</th>
+        <th>MembershipType</th>
+    </tr>
+    {% for Member in member %}
+    <tr>
+        <td>{{ Member.MemberID }}</td>
+        <td><a class="data" href="{{ url_for('memberloan') }}?member={{ Member.MemberID }}">{{ Member.FirstName }} {{ Member.LastName }}</a></td>
+        <td>{{ Member.Address }}</td>
+        <td>{{ Member.Phone }}</td>
+        <td>{{ Member.Email }}</td>
+        <td>{{ Member.MembershipDate }}</td>
+        <td>{{ Member.MembershipType }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<div class="pagination">
+    {% if prev_url %}
+    <a href="{{ prev_url }}">&laquo; Previous</a>
+    {% endif %}
+    {% if next_url %}
+    <a href="{{ next_url }}">Next &raquo;</a>
+    {% endif %}
+</div>
+<h3>New Member</h3>
+<form action = "{{ url_for('newmember') }}" method="POST">
+    <table align="center">
+        <tr>
+            <td><input type="text" name="first" placeholder="Enter first name of the Member" size="40"></td>
+            <td><input type="text" name="second" placeholder="Enter second name of the Member" size="40"></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="cen"><textarea name="add" placeholder="Enter address of the Member" cols="80"></textarea></td>
+        </tr>
+        <tr>
+            <td><input type="text" name="phone" placeholder="Enter phone number of Member" size="40"></td>
+            <td><input type="text" name="email" placeholder="Enter e-mail if of the Member" size="40"></td>
+        </tr>
+        <tr>
+            <td><input type="date" name="memdate" placeholder="Enter date of membership" size="40"></td>
+            <td>
+                <select name="type">
+                    <option value="Regular">Regular</option>
+                    <option value="Premium">Premium</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="cen" colspan="2"><button class="wide" type="submit">Add</button></td>
+        </tr>
+    </table>
+
+
+</form>
+{% endblock %}

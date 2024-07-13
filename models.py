@@ -75,4 +75,17 @@ class Staff(db.Model):
     Phone = db.Column(db.String(15))
 
 
+class ReturnedLoan(db.Model):
+    __tablename__ = "returnedloan"
+    ReturnedLoanID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    LoanID = db.Column(db.Integer)
+    CopyID = db.Column(db.Integer, db.ForeignKey('bookcopy.CopyID'))
+    MemberID = db.Column(db.Integer, db.ForeignKey('member.MemberID'))
+    LoanDate = db.Column(db.Date, nullable=False)
+    DueDate = db.Column(db.Date, nullable=False)
+    ReturnDate = db.Column(db.Date, nullable=False)
+    StaffID = db.Column(db.Integer, db.ForeignKey('staff.StaffID'))
+    bookCopy = relationship("BookCopy")
+    member = relationship("Member")
+    staff = relationship("Staff")
 
