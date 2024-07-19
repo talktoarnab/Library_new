@@ -2,12 +2,17 @@
 
 {% block content %}
 <style>
-a.data:hover{
-         text-decoration: none;
-         color: #66ccff;
-        }
+
 </style>
 <h2>Members</h2>
+<h3>Find Members</h3>
+<form action = "{{ url_for('members') }}" method="POST">
+    <input type="text" name="search_name" placeholder="Enter Member Name">
+    <input type="text" name="search_mail" placeholder="Enter Member email">
+    <input type="text" name="search_phone" placeholder="Enter Member phone">
+    <button type="submit">Search</button>
+</form>
+<h3></h3>
 <table border="0.5" align="center">
     <tr>
         <th>MemberID</th>

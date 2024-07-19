@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+import flask
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from sqlalchemy import text
 
@@ -38,7 +39,7 @@ def newauthor():
 @app.route('/books', methods=['GET', 'POST'])
 def books():
     page = request.args.get('page', 1, type=int)
-    per_page = 10
+    per_page = 14
     if request.method == 'POST':
         search_query = request.form['search_query']
         search_genre = request.form['search_genre']
@@ -180,8 +181,21 @@ def newloan():
 @app.route('/members', methods=['GET', 'POST'])
 def members():
     page = request.args.get('page', 1, type=int)
-    per_page = 10
-    members = db.session.query(Member).order_by(Member.FirstName)
+    per_page = 12
+    if request.method == 'POST':
+        search_name = request.form['search_name']
+        search_email = request.form['search_mail']
+        search_phone = request.form['search_phone']
+        if search_name:
+            members = db.session.query(Member).filter(Member.FirstName.like(f"%{search_name}%") | Member.LastName.like(f"%{search_name}%")).order_by(Member.FirstName)
+        if search_email:
+            members = db.session.query(Member).filter(Member.Email.like(f"%{search_email}%")).order_by(Member.FirstName)
+        if search_phone:
+            members = db.session.query(Member).filter(Member.Phone.like(f"%{search_phone}%")).order_by(Member.FirstName)
+        if search_name == '' and search_email == '' and search_phone == '':
+            members = db.session.query(Member).order_by(Member.FirstName)
+    else:
+        members = db.session.query(Member).order_by(Member.FirstName)
     paginatedmembers = members.paginate(page=page, per_page=per_page, error_out=False)
     next_url = url_for('members', page=paginatedmembers.next_num) if paginatedmembers.has_next else None
     prev_url = url_for('members', page=paginatedmembers.prev_num) if paginatedmembers.has_prev else None
@@ -244,5 +258,5 @@ def publisher():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.debug = True
+    app.run(host='0.0.0.0', port=5000)

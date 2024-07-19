@@ -3,8 +3,8 @@
 {% block content %}
 <style>
 a.data:hover{
-         text-decoration: none;
-         color: #66ccff;
+         text-decoration: underline;
+         color: #964734;
         }
 </style>
 <h2>Books</h2>
@@ -98,15 +98,16 @@ a.data:hover{
 
 }
 function closeAuthSearch() {
+    document.getElementById('memberSearchResults').innerHTML = "";
     document.getElementById('memberSearchModal').style.display = 'none';
 }
 function searchMember() {
+    document.getElementById('memberSearchResults').innerHTML = "";
     const query = document.getElementById('memberSearchQuery').value;
     fetch(`/search_member?query=${query}`)
         .then(response => response.json())
         .then(data => {
             const resultsDiv = document.getElementById('memberSearchResults');
-            resultsDiv.innerHTML = '';
             data.members.forEach(member => {
                 const memberDiv = document.createElement('div');
                 const lineBrk = document.createElement('br');

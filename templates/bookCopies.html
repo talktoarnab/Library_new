@@ -66,7 +66,8 @@
         <input type="text" id="memberSearchQuery" placeholder="Enter member name or email">
         <input type="hidden" id="bookId">
         <button type="button" onclick="searchMember()">Search</button>
-        <div id="memberSearchResults"></div>
+        <h4></h4>
+        <div id="memberSearchResults" align="center"></div>
     </div>
 </div>
 
@@ -77,6 +78,8 @@
 
 }
 function closeMemberSearch() {
+    document.getElementById('memberSearchResults').innerHTML="";
+    document.getElementById('memberSearchQuery').value="";
     document.getElementById('memberSearchModal').style.display = 'none';
 }
 function searchMember() {
@@ -85,15 +88,29 @@ function searchMember() {
         .then(response => response.json())
         .then(data => {
             const resultsDiv = document.getElementById('memberSearchResults');
-            resultsDiv.innerHTML = '';
+
+            tbl = document.createElement('table');
+            tbl.style.cssFloat = 'center';
             data.members.forEach(member => {
-                const memberDiv = document.createElement('div');
-                const lineBrk = document.createElement('br');
-                memberDiv.textContent = `${member.FirstName} ${member.LastName} (${member.Email})`;
-                memberDiv.onclick = () => selectMember(member.MemberID, member.FirstName, member.LastName);
-                resultsDiv.appendChild(memberDiv);
-                resultsDiv.appendChild(lineBrk);
+                tr = tbl.insertRow();
+                //const memberDiv = document.createElement('div');
+                //const lineBrk = document.createElement('br');
+                td = tr.insertCell();
+                link = document.createElement("a");
+                link.textContent = `${member.FirstName} ${member.LastName}`
+                link.href = "#";
+                td.appendChild(link);
+                //td.appendChild(document.createTextNode(`${member.FirstName} ${member.LastName}`))
+                td = tr.insertCell();
+                td.appendChild(document.createTextNode(`${member.Email}`))
+                //memberDiv.textContent = `${member.FirstName} ${member.LastName} (${member.Email})`;
+                tr.onclick = () => selectMember(member.MemberID, member.FirstName, member.LastName);
+                //resultsDiv.appendChild(memberDiv);
+                //resultsDiv.appendChild(lineBrk);
             });
+            resultsDiv.innerHTML="";
+            resultsDiv.innerHTML="<h4>Select the member</h4>";
+            resultsDiv.appendChild(tbl);
         });
 }
 
